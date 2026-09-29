@@ -2,55 +2,52 @@ import tkinter as tk
 import sys
 import os
 
+product_entries = []
 
-
-product_entries=[]
-#setup
-main_window=tk.Tk()
+main_window = tk.Tk()
 main_window.title('Ultimate Cracked POS system Skeleton (No fancy GUI version)')
 main_window.geometry('800x800')
 
-#scrollbar frame
-canvas=tk.Canvas(main_window)
-scrollbar=tk.Scrollbar(main_window,orient='vertical',command=canvas.yview)
-scrollable_frame=tk.Frame(canvas)
+canvas = tk.Canvas(main_window)
+scrollbar = tk.Scrollbar(main_window, orient='vertical', command=canvas.yview)
+scrollable_frame = tk.Frame(canvas)
 
 canvas.configure(yscrollcommand=scrollbar.set)
-
 canvas.pack(side="left", fill="both", expand=True)
 scrollbar.pack(side="right", fill="y")
 
-
 canvas_window = canvas.create_window((400, 0), window=scrollable_frame, anchor="n")
-
-
-
 scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
-#widgets
-product1_label=tk.Label(scrollable_frame,text="enter name of product 1: ")
+product1_label = tk.Label(scrollable_frame, text="enter name of product 1: ")
 product1_label.pack()
-product1_name_entry=tk.Entry(scrollable_frame)
+product1_name_entry = tk.Entry(scrollable_frame)
 product1_name_entry.pack()
 
-
-product1_qty_label=tk.Label(scrollable_frame,text="enter number of product 1 being bought: ")
+product1_qty_label = tk.Label(scrollable_frame, text="enter number of product 1 being bought: ")
 product1_qty_label.pack()
-product1_qty_entry=tk.Entry(scrollable_frame)
+product1_qty_entry = tk.Entry(scrollable_frame)
 product1_qty_entry.pack()
 
-product1_cost_label=tk.Label(scrollable_frame,text="enter cost of product 1: ")
+product1_cost_label = tk.Label(scrollable_frame, text="enter cost of product 1: ")
 product1_cost_label.pack()
-product1_cost_entry=tk.Entry(scrollable_frame)
+product1_cost_entry = tk.Entry(scrollable_frame)
 product1_cost_entry.pack()
 
 
+def is_purely_numeric(text):
+    try:
+        float(text)
+        return True
+    except ValueError:
+        return False
 
 
-#function to be defined before result_label
 def get_validated_product(name_entry, qty_entry, cost_entry, product_label):
     name = name_entry.get().strip()
     if name == "":
+        raise ValueError(f"{product_label}: Enter a valid input...")
+    if is_purely_numeric(name):
         raise ValueError(f"{product_label}: Enter a valid input...")
 
     try:
@@ -71,6 +68,12 @@ def get_validated_product(name_entry, qty_entry, cost_entry, product_label):
     return name, qty, cost
 
 
+def get_last_entry_set():
+    if product_entries:
+        return product_entries[-1]
+    return (product1_name_entry, product1_qty_entry, product1_cost_entry)
+
+
 def mather():
     try:
         prod1, qty1, cost1 = get_validated_product(
@@ -84,30 +87,38 @@ def mather():
             )
             total += qty * cost
 
-        result_label.config(text=f'TOTAL COST TO BE PAID: ${total}')
+        result_label.config(text=f'TOTAL COST TO BE PAID: ${total}', fg="white")
 
     except ValueError as e:
         result_label.config(text=f"Invalid input — {e}", fg="red")
 
 
-
 def AddProduct():
-    new_prod_label=tk.Label(scrollable_frame,text="enter name of additional product")
+    last_name, last_qty, last_cost = get_last_entry_set()
+    last_label = f"Product {len(product_entries) + 1}"
+
+    try:
+        get_validated_product(last_name, last_qty, last_cost, last_label)
+    except ValueError as e:
+        result_label.config(text=f"Fix this before adding another — {e}", fg="red")
+        return
+
+    new_prod_label = tk.Label(scrollable_frame, text="enter name of additional product")
     new_prod_label.pack()
-    new_prod_entry=tk.Entry(scrollable_frame)
+    new_prod_entry = tk.Entry(scrollable_frame)
     new_prod_entry.pack()
 
-    new_prod_qty=tk.Label(scrollable_frame,text="enter number of additional product")
+    new_prod_qty = tk.Label(scrollable_frame, text="enter number of additional product")
     new_prod_qty.pack()
-    new_prod_qty_entry=tk.Entry(scrollable_frame)
+    new_prod_qty_entry = tk.Entry(scrollable_frame)
     new_prod_qty_entry.pack()
 
-    new_prod_cost=tk.Label(scrollable_frame,text="enter cost of additional product")
+    new_prod_cost = tk.Label(scrollable_frame, text="enter cost of additional product")
     new_prod_cost.pack()
-    new_prod_cost_entry=tk.Entry(scrollable_frame)
+    new_prod_cost_entry = tk.Entry(scrollable_frame)
     new_prod_cost_entry.pack()
 
-    product_entries.append((new_prod_entry,new_prod_qty_entry,new_prod_cost_entry))
+    product_entries.append((new_prod_entry, new_prod_qty_entry, new_prod_cost_entry))
 
     calc_button.pack_forget()
     calc_button.pack()
@@ -118,27 +129,22 @@ def AddProduct():
     rerun_button.pack_forget()
     rerun_button.pack()
 
+
 def rerun():
     main_window.destroy()
-    os.execv(sys.executable,['python']+ sys.argv)
+    os.execv(sys.executable, ['python'] + sys.argv)
 
 
-
-
-#final result display
-result_label=tk.Label(scrollable_frame,text=" ")
+result_label = tk.Label(scrollable_frame, text=" ")
 result_label.pack()
 
-calc_button=tk.Button(scrollable_frame,text="calculate",command=mather)
+calc_button = tk.Button(scrollable_frame, text="calculate", command=mather)
 calc_button.pack()
 
-add_button=tk.Button(scrollable_frame,text='add another product',command=AddProduct)
+add_button = tk.Button(scrollable_frame, text='add another product', command=AddProduct)
 add_button.pack()
 
-rerun_button=tk.Button(scrollable_frame,text='Rerun',command=rerun)
+rerun_button = tk.Button(scrollable_frame, text='Rerun', command=rerun)
 rerun_button.pack()
-
-
-
 
 main_window.mainloop()
